@@ -18,14 +18,26 @@ import java.awt.event.MouseEvent;
 //        });
 //    }
 
+//public class StartGame extends Window implements MouseListener{
+//    JPanel panel = new JPanel();
+//
+//    public StartGame() {
+//        panel.addMouseListener(this);
+//    }
+
 public class StartGame extends Window implements MouseListener{
-    JPanel panel = new JPanel();
+    Frame frame = new Frame();
 
     public StartGame() {
-        panel.addMouseListener(this);
+        frame.addMouseListener(this);
+        frame.setSize(940, 700);
+        frame.setVisible(true);
+        frame.setLocation(0, 0);
     }
 
-//public class StartGame extends Window {
+    public static void main(String[] args) {
+        new StartGame();
+    }
 
     public boolean isPlay(MouseEvent event) {
         double x = StdDraw.mouseX();
