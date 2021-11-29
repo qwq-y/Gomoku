@@ -1,23 +1,31 @@
 import edu.princeton.cs.algs4.StdDraw;
-
 import javax.swing.*;
+import java.awt.event.MouseListener;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import static com.sun.java.accessibility.util.AWTEventMonitor.addMouseListener;
 
 //public class StartGame extends Window implements MouseAdapter {
 //    public void mouseClick(MouseEvent event) {
 //        isPlay();
 //    }
-public class StartGame extends Window {
+
+//public class StartGame extends Window {
+//    public StartGame() {
+//        addMouseListener(new MouseAdapter() {
+//            public void mouseClicked(MouseEvent event) {
+//                isPlay(event);
+//            }
+//        });
+//    }
+
+public class StartGame extends Window implements MouseListener{
+    JPanel panel = new JPanel();
+
     public StartGame() {
-        addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent event) {
-                isPlay(event);
-            }
-        });
+        panel.addMouseListener(this);
     }
+
+//public class StartGame extends Window {
 
     public boolean isPlay(MouseEvent event) {
         double x = StdDraw.mouseX();
@@ -66,8 +74,6 @@ public class StartGame extends Window {
         StdDraw.setPenColor(255, 206, 245);
         StdDraw.filledRectangle(470, 300, 120, 60);
         StdDraw.setFont(new Font("Arial", Font.PLAIN, 60));
-//        StdDraw.setPenColor(247, 247, 247);
-//        StdDraw.text(473, 292, "Play");
         StdDraw.setPenColor(255, 109, 197);
         StdDraw.text(470, 295, "Play");
         // "Introduction"
@@ -76,8 +82,6 @@ public class StartGame extends Window {
         StdDraw.setPenColor(255, 235, 166);
         StdDraw.filledRectangle(160, 300, 120, 45);
         StdDraw.setFont(new Font("Arial", Font.PLAIN, 36));
-//        StdDraw.setPenColor(255, 136, 39);
-//        StdDraw.text(163, 292, "Introduction");
         StdDraw.setPenColor(255, 161, 84);
         StdDraw.text(160, 295, "Introduction");
         // "Settings"
@@ -86,8 +90,6 @@ public class StartGame extends Window {
         StdDraw.setPenColor(201, 241, 255);
         StdDraw.filledRectangle(780, 300, 120, 45);
         StdDraw.setFont(new Font("Arial", Font.PLAIN, 36));
-//        StdDraw.setPenColor(247, 247, 247);
-//        StdDraw.text(783, 292, "Settings");
         StdDraw.setPenColor(0, 187, 255);
         StdDraw.text(780, 295, "Settings");
         // pictures
@@ -98,5 +100,21 @@ public class StartGame extends Window {
         StdDraw.picture(590, 140, "5.jpg", 140, 140);
         StdDraw.picture(710, 140, "6.jpg", 140, 140);
         StdDraw.picture(830, 140, "7.jpg", 140, 140);
+    }
+
+    public void mouseClicked(MouseEvent e) {
+        System.out.println("mouseClicked");
+    }
+    public void mouseEntered(MouseEvent e) {
+        System.out.println("mouseEntered");
+    }
+    public void mouseExited(MouseEvent e) {
+        System.out.println("mouseExited");
+    }
+    public void mousePressed(MouseEvent e) {
+        System.out.println("mousePressed");
+    }
+    public void mouseReleased(MouseEvent e) {
+        System.out.println("mouseReleased");
     }
 }
