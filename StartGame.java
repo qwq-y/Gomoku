@@ -4,71 +4,7 @@ import java.awt.event.MouseListener;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 
-//public class StartGame extends Window implements MouseAdapter {
-//    public void mouseClick(MouseEvent event) {
-//        isPlay();
-//    }
-
-//public class StartGame extends Window {
-//    public StartGame() {
-//        addMouseListener(new MouseAdapter() {
-//            public void mouseClicked(MouseEvent event) {
-//                isPlay(event);
-//            }
-//        });
-//    }
-
-//public class StartGame extends Window implements MouseListener{
-//    JPanel panel = new JPanel();
-//
-//    public StartGame() {
-//        panel.addMouseListener(this);
-//    }
-
-//public class StartGame extends Window implements MouseListener{
-//    Frame frame = new Frame();
-//
-//    public StartGame() {
-//        frame.addMouseListener(this);
-//        frame.setSize(940, 700);
-//        frame.setVisible(true);
-//        frame.setLocation(0, 0);
-//    }
-
-//public class StartGame extends JFrame implements MouseListener {
-//    JLayeredPane pane;
-//    JButton play;
-//
-//    public StartGame() {
-//        play.setBounds(470, 300, 120, 60);
-//        play.setVisible(true);
-//        play.addMouseListener(this);
-//        pane.add(play);
-//    }
-//
-////    public StartGame(JFrame frame) {
-////        super(frame);
-////    }
-//
-//    public static void main(String[] args) {
-//        JFrame frame = new JFrame();
-//        new StartGame();
-//    }
-//
-
 public class StartGame extends Window {
-//    public void isAction() {
-//        double x = StdDraw.mouseX();
-//        double y = StdDraw.mouseY();
-//        while (true) {
-//            if (StdDraw.isMousePressed()) {
-//                if (350 <= x && x <= 590 && 240 <= y && y <= 360) {
-//                    play();
-//                }
-//            }
-//        }
-//    }
-
     public boolean isPlay() {
         double x = StdDraw.mouseX();
         double y = StdDraw.mouseY();
@@ -113,7 +49,6 @@ public class StartGame extends Window {
     }
 
     public void play(boolean isPlay) {
-//    public void play() {
 // test
         String score1 = "0";
         String score2 = "0";
@@ -176,20 +111,4 @@ public class StartGame extends Window {
         StdDraw.picture(710, 140, "6.jpg", 140, 140);
         StdDraw.picture(830, 140, "7.jpg", 140, 140);
     }
-
-//    public void mouseClicked(MouseEvent e) {
-//        System.out.println("mouseClicked");
-//    }
-//    public void mouseEntered(MouseEvent e) {
-//        System.out.println("mouseEntered");
-//    }
-//    public void mouseExited(MouseEvent e) {
-//        System.out.println("mouseExited");
-//    }
-//    public void mousePressed(MouseEvent e) {
-//        System.out.println("mousePressed");
-//    }
-//    public void mouseReleased(MouseEvent e) {
-//        System.out.println("mouseReleased");
-//    }
 }
