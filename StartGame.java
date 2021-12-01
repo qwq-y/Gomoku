@@ -83,20 +83,4 @@ public class StartGame extends Window {
         StdDraw.picture(710, 140, "6.jpg", 140, 140);
         StdDraw.picture(830, 140, "7.jpg", 140, 140);
     }
-
-//    public void mouseClicked(MouseEvent e) {
-//        System.out.println("mouseClicked");
-//    }
-//    public void mouseEntered(MouseEvent e) {
-//        System.out.println("mouseEntered");
-//    }
-//    public void mouseExited(MouseEvent e) {
-//        System.out.println("mouseExited");
-//    }
-//    public void mousePressed(MouseEvent e) {
-//        System.out.println("mousePressed");
-//    }
-//    public void mouseReleased(MouseEvent e) {
-//        System.out.println("mouseReleased");
-//    }
 }
