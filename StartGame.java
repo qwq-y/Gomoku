@@ -1,10 +1,20 @@
 import edu.princeton.cs.algs4.StdDraw;
 import javax.swing.*;
-import java.awt.event.MouseListener;
 import java.awt.*;
-import java.awt.event.MouseEvent;
 
 public class StartGame extends Window {
+//    public void isAction() {
+//        double x = StdDraw.mouseX();
+//        double y = StdDraw.mouseY();
+//        while (true) {
+//            if (StdDraw.isMousePressed()) {
+//                if (350 <= x && x <= 590 && 240 <= y && y <= 360) {
+//                    play();
+//                }
+//            }
+//        }
+//    }
+
     public boolean isPlay() {
         double x = StdDraw.mouseX();
         double y = StdDraw.mouseY();
@@ -19,6 +29,7 @@ public class StartGame extends Window {
             }
         }
     }
+
     public boolean isIntroduction() {
         double x = StdDraw.mouseX();
         double y = StdDraw.mouseY();
@@ -33,6 +44,7 @@ public class StartGame extends Window {
             }
         }
     }
+
     public boolean isSettings() {
         double x = StdDraw.mouseX();
         double y = StdDraw.mouseY();
@@ -48,16 +60,31 @@ public class StartGame extends Window {
         }
     }
 
+    public void introduction(boolean isIntroduction) {
+        if (isIntroduction()) {
+
+        }
+    }
+
+    public void settings(boolean isSettings) {
+        if (isSettings()) {
+            Settings settings = new Settings();
+            settings.settingsWindow();
+            settings.listener();
+        }
+    }
+
     public void play(boolean isPlay) {
 // test
+        Settings settings = new Settings();
         String score1 = "0";
         String score2 = "0";
-        int hour = 0;
-        int minute = 1;
-        int second = 16;
-        int pause = 8;
+        int hour = settings.getHour();
+        int minute = settings.getMinute();
+        int second = settings.getSecond();
+        int pause = settings.getPause();
 //
-        //if (isPlay()) {
+        if (isPlay()) {
             StdDraw.clear();
             Board board = new Board();
             board.showWindow();
@@ -67,7 +94,7 @@ public class StartGame extends Window {
             board.showButtons();
             board.showTurnTimer(pause);
             board.showTotalTimer(hour, minute, second);
-        //}
+        }
     }
 
     public void welcomePage() {
