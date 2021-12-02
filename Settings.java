@@ -6,7 +6,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 public class Settings {
-    private int hour, minute, second, pause;
+    private int n, player1, player2, hour, minute, second, pause;
     private JFrame frame;
     private Box vBox;
     private JRadioButton button1_1, button1_2, button1_3;
@@ -22,6 +22,9 @@ public class Settings {
     private JPanel confirmPanel;
 
     public Settings() {
+        n = 14;
+        player1 = 0;
+        player2 = 0;
         hour = 0;
         minute = 30;
         second = 0;
@@ -94,8 +97,8 @@ public class Settings {
         timePanel.add(timePanel_1);
         timePanel.add(timePanel_2);
         timePanel.setPreferredSize(new Dimension(280, 250));
-        // "pieces color"
-        colorPanel.setBorder(BorderFactory.createTitledBorder("pieces color: "));
+        // "pieces colors"
+        colorPanel.setBorder(BorderFactory.createTitledBorder("pieces colors: "));
         colorPanel_1.setBorder(BorderFactory.createTitledBorder("player 1"));
         colorPanel_1.setLayout(new GridLayout(3,1));
         colorGroup_1.add(button2_1);
@@ -136,6 +139,51 @@ public class Settings {
                 super.windowOpened(e);
             }
         });
+        // set board size
+//        button1_1.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                n = 14;
+//            }
+//        });
+        button1_2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                n = 16;
+            }
+        });
+        button1_3.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                n = 18;
+            }
+        });
+        // set pieces colors
+        button2_2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                player1 = 1;
+            }
+        });
+        button2_3.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                player1 = 2;
+            }
+        });
+        button3_2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                player2 = 1;
+            }
+        });
+        button3_3.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                player2 = 2;
+            }
+        });
+        // "ok"
         ok.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -143,10 +191,11 @@ public class Settings {
                 minute = Integer.valueOf(totalMinute.getText());
                 second = Integer.valueOf(totalSecond.getText());
                 pause = Integer.valueOf(turnSecond.getText());
-                System.out.println(hour);
+//                System.out.println(hour);
                 frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
             }
         });
+        // "cancel"
         cancel.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
