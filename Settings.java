@@ -59,6 +59,9 @@ public class Settings {
         confirmPanel = new JPanel();
     }
 
+    public int getN() {
+        return n;
+    }
     public int getHour() {
         return hour;
     }
@@ -70,6 +73,12 @@ public class Settings {
     }
     public int getPause() {
         return pause;
+    }
+    public int getPlayer1() {
+        return player1;
+    }
+    public int getPlayer2() {
+        return player2;
     }
 
     public void settingsWindow() {
