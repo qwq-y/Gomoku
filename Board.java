@@ -1,7 +1,7 @@
 import edu.princeton.cs.algs4.StdDraw;
 import java.awt.*;
 
-public class Board extends Window {
+public class Board implements Runnable {
     private int n;
 
     public Board() {
@@ -10,8 +10,37 @@ public class Board extends Window {
     public Board(int n) {
         this.n = n;
     }
+
+    @Override
+    public void run() {
+        Settings settings = new Settings();
+        String score1 = "0";
+        String score2 = "0";
+        int n = settings.getN();
+        int hour = settings.getHour();
+        int minute = settings.getMinute();
+        int second = settings.getSecond();
+        int pause = settings.getPause();
+        int player1 = settings.getPlayer1();
+        int player2 = settings.getPlayer2();
+
+        showWindow();
+        showPicture();
+        showBoard();
+        showScores(score1, score2);
+        showButtons();
+        showTurnTimer(pause);
+        showTotalTimer(hour, minute, second);
+    }
+
     public int getN() {return this.n;}
     public void setN(int n) {this.n = n;}
+
+    public void showWindow() {
+        StdDraw.setCanvasSize(940,700);
+        StdDraw.setXscale(0.0, 940.0);
+        StdDraw.setYscale(0.0, 700.0);
+    }
 
     public void showBoard() {
         StdDraw.setPenColor(175, 167, 255);
@@ -27,7 +56,7 @@ public class Board extends Window {
         StdDraw.filledCircle(n/2 * a + frame, n/2 * a +frame, 0.15 * a);
     }
 
-    public void showTotalTimer(int hour, int minute, int second) {
+    public boolean showTotalTimer(int hour, int minute, int second) {
         StdDraw.enableDoubleBuffering();
         StdDraw.setFont(new Font("Arial", Font.PLAIN, 30));
         int t = 3600 * hour + 60 * minute + second;
@@ -41,11 +70,15 @@ public class Board extends Window {
             StdDraw.setPenColor(145, 133, 255);
             StdDraw.textLeft(685, 640, time);
             StdDraw.show();
+            if (i == 0) {
+                return true;
+            }
             StdDraw.pause(1000);
         }
+        return false;
     }
 
-    public void showTurnTimer(int pause) {
+    public boolean showTurnTimer(int pause) {
         StdDraw.setPenColor(194, 188, 255);
         StdDraw.setFont(new Font("Arial", Font.PLAIN, 20));
         StdDraw.textLeft(685, 560, "this turn");
@@ -60,8 +93,12 @@ public class Board extends Window {
             StdDraw.setPenColor(194, 188, 255);
             StdDraw.text(835, 560, limit);
             StdDraw.show();
+            if (i == 0) {
+                return true;
+            }
             StdDraw.pause(1000);
         }
+        return false;
     }
 
     public void showScores(String score1, String score2) {
@@ -77,8 +114,6 @@ public class Board extends Window {
         // "VS"
         StdDraw.setFont(new Font("Arial", Font.PLAIN, 35));
         StdDraw.text(800, 435, "VS");
-//        StdDraw.filledCircle(800, 450, 4);
-//        StdDraw.filledCircle(800, 430, 4);
     }
 
     public void showButtons() {

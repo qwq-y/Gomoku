@@ -5,7 +5,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-public class Settings {
+public class Settings implements Runnable {
     private int n, player1, player2, hour, minute, second, pause;
     private JFrame frame;
     private Box vBox;
@@ -59,29 +59,41 @@ public class Settings {
         confirmPanel = new JPanel();
     }
 
+    @Override
+    public void run() {
+        settingsWindow();
+        listener();
+    }
+
     public int getN() {
         return n;
     }
+
     public int getHour() {
         return hour;
     }
+
     public int getMinute() {
         return minute;
     }
+
     public int getSecond() {
         return second;
     }
+
     public int getPause() {
         return pause;
     }
+
     public int getPlayer1() {
         return player1;
     }
+
     public int getPlayer2() {
         return player2;
     }
 
-    public void settingsWindow() {
+    public void settingsWindow () {
         // "board size"
         boardPanel.setBorder(BorderFactory.createTitledBorder("board size: "));
         boardGroup.add(button1_1);
@@ -109,7 +121,7 @@ public class Settings {
         // "pieces colors"
         colorPanel.setBorder(BorderFactory.createTitledBorder("pieces colors: "));
         colorPanel_1.setBorder(BorderFactory.createTitledBorder("player 1"));
-        colorPanel_1.setLayout(new GridLayout(3,1));
+        colorPanel_1.setLayout(new GridLayout(3, 1));
         colorGroup_1.add(button2_1);
         colorGroup_1.add(button2_2);
         colorGroup_1.add(button2_3);
@@ -117,7 +129,7 @@ public class Settings {
         colorPanel_1.add(button2_2);
         colorPanel_1.add(button2_3);
         colorPanel_2.setBorder(BorderFactory.createTitledBorder("player 2"));
-        colorPanel_2.setLayout(new GridLayout(3,1));
+        colorPanel_2.setLayout(new GridLayout(3, 1));
         colorGroup_2.add(button3_1);
         colorGroup_2.add(button3_2);
         colorGroup_2.add(button3_3);
@@ -138,10 +150,10 @@ public class Settings {
         vBox.add(confirmPanel);
         frame.setContentPane(vBox);
         this.frame.setVisible(true);
-        this.frame.setSize(300,500);
+        this.frame.setSize(300, 500);
     }
 
-    public void listener() {
+        public void listener () {
         this.frame.addWindowListener(new WindowAdapter() {
             @Override
             public void windowOpened(WindowEvent e) {
@@ -216,4 +228,4 @@ public class Settings {
             }
         });
     }
-}
+    }
