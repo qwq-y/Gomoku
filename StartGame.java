@@ -163,8 +163,8 @@ public class StartGame implements MouseListener, Runnable {
 
     @Override
     public void mousePressed(MouseEvent e) {
-        double x = StdDraw.mouseX();
-        double y = StdDraw.mouseY();
+        double x = e.getX();
+        double y = e.getY();
         // play
         if (350 <= x && x <= 590 && 240 <= y && y <= 360) {
             StdDraw.clear();
