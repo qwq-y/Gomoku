@@ -1,8 +1,12 @@
 import edu.princeton.cs.algs4.StdDraw;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
-public class StartGame {
+public class StartGame implements MouseListener, Runnable {
+    Settings settings = new Settings();
+
     public void showWindow() {
         StdDraw.setCanvasSize(940,700);
         StdDraw.setXscale(0.0, 940.0);
@@ -63,56 +67,56 @@ public class StartGame {
 //        }
 //    }
 
-    public boolean isPlay() {
-        double x = StdDraw.mouseX();
-        double y = StdDraw.mouseY();
-        while (true) {
-            if (StdDraw.isMousePressed()) {
-                if (350 <= x && x <= 590 && 240 <= y && y <= 360) {
-                    return true;
-                }
-                else {
-                    return false;
-                }
-            }
-        }
-    }
-
-    public boolean isIntroduction() {
-        double x = StdDraw.mouseX();
-        double y = StdDraw.mouseY();
-        while (true) {
-            if (StdDraw.isMousePressed()) {
-                if (40 <= x && x <= 280 && 255 <= y && y <= 345) {
-                    return true;
-                }
-                else {
-                    return false;
-                }
-            }
-        }
-    }
-
-    public boolean isSettings() {
-        double x = StdDraw.mouseX();
-        double y = StdDraw.mouseY();
-        while (true) {
-            if (StdDraw.isMousePressed()) {
-                if (660 <= x && x <= 900 && 255 <= y && y <= 345) {
-                    return true;
-                }
-                else {
-                    return false;
-                }
-            }
-        }
-    }
-
-    public void introduction(boolean isIntroduction) {
-        if (isIntroduction()) {
-
-        }
-    }
+//    public boolean isPlay() {
+//        double x = StdDraw.mouseX();
+//        double y = StdDraw.mouseY();
+//        while (true) {
+//            if (StdDraw.isMousePressed()) {
+//                if (350 <= x && x <= 590 && 240 <= y && y <= 360) {
+//                    return true;
+//                }
+//                else {
+//                    return false;
+//                }
+//            }
+//        }
+//    }
+//
+//    public boolean isIntroduction() {
+//        double x = StdDraw.mouseX();
+//        double y = StdDraw.mouseY();
+//        while (true) {
+//            if (StdDraw.isMousePressed()) {
+//                if (40 <= x && x <= 280 && 255 <= y && y <= 345) {
+//                    return true;
+//                }
+//                else {
+//                    return false;
+//                }
+//            }
+//        }
+//    }
+//
+//    public boolean isSettings() {
+//        double x = StdDraw.mouseX();
+//        double y = StdDraw.mouseY();
+//        while (true) {
+//            if (StdDraw.isMousePressed()) {
+//                if (660 <= x && x <= 900 && 255 <= y && y <= 345) {
+//                    return true;
+//                }
+//                else {
+//                    return false;
+//                }
+//            }
+//        }
+//    }
+//
+//    public void introduction(boolean isIntroduction) {
+//        if (isIntroduction()) {
+//
+//        }
+//    }
 
 //    public void settings(boolean isSettings) {
 //        if (isSettings()) {
@@ -151,4 +155,39 @@ public class StartGame {
 //            playThread.start();
 //        }
 //    }
+
+    @Override
+    public void run() {
+
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+        double x = StdDraw.mouseX();
+        double y = StdDraw.mouseY();
+        // play
+        if (350 <= x && x <= 590 && 240 <= y && y <= 360) {
+            StdDraw.clear();
+            Board board = new Board(settings.getN());
+            Thread playThread = new Thread(board);
+            playThread.start();
+            Pieces pieces = new Pieces();
+            Thread piecesTread = new Thread();
+            piecesTread.start();
+        }
+        //settings
+        if (660 <= x && x <= 900 && 255 <= y && y <= 345) {
+            Thread settingsThread = new Thread(settings);
+            settingsThread.start();
+        }
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) { }
+    @Override
+    public void mouseReleased(MouseEvent e) { }
+    @Override
+    public void mouseEntered(MouseEvent e) { }
+    @Override
+    public void mouseExited(MouseEvent e) { }
 }
