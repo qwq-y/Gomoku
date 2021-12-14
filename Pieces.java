@@ -3,6 +3,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.ArrayList;
 
 public class Pieces extends Board implements MouseListener, Runnable{
     double size, frame, a;
@@ -15,6 +16,8 @@ public class Pieces extends Board implements MouseListener, Runnable{
     boolean canPlay = true;
     int maxTime, blackTime, whiteTime;
     String message, blackMessage, whiteMessage;
+    UndoPosition[] undoPositions;
+    int totalCount;
 
     public Pieces() {
         super();
@@ -26,14 +29,20 @@ public class Pieces extends Board implements MouseListener, Runnable{
         x = 0;
         y = 0;
         message = "Player1' turn";
+        undoPositions = new UndoPosition[(n + 2) * (n + 2)];
+        totalCount = 0;
     }
 
-    public void drawPieces() {
+    public int[][] getAllChess() {
+        return allChess;
+    }
+
+    public void drawPieces(int[][] array) {
         for(int i = 0; i < n ; i++){
             for(int j = 0; j < n ; j++){
                 double tempX = frame + a * i;
                 double tempY = frame + a * j;
-                if (allChess[i][j] == 1) {
+                if (array[i][j] == 1) {
                     switch (settings.getPlayer1()) {
                         case 1:
                             StdDraw.setPenColor(Color.BLACK);
@@ -44,7 +53,7 @@ public class Pieces extends Board implements MouseListener, Runnable{
                     }
                     StdDraw.filledCircle(tempX, tempY, 0.3 * a);
                 }
-                if (allChess[i][j] == 2) {
+                if (array[i][j] == 2) {
                     switch (settings.getPlayer1()) {
                         case 1:
                             StdDraw.setPenColor(Color.YELLOW);
@@ -140,7 +149,7 @@ public class Pieces extends Board implements MouseListener, Runnable{
             int count4 = 1;
             int countForbidden = 0;
             int color = 1;
-            //横向
+            // horizontal
             int i = 1;
             while (color == allChess[x + i][y] && (x + i) < (n + 2)) {
                 count1++;
@@ -154,7 +163,7 @@ public class Pieces extends Board implements MouseListener, Runnable{
             if (count1 == 3 && allChess[x + i + 1][y] == 0 && allChess[x - j - 1][y] == 0) {
                 countForbidden++;
             }
-            //纵向
+            // vertical
             i = 1;
             while (1 == allChess[x][y + i] && y + i < (n + 2)) {
                 count2++;
@@ -168,7 +177,7 @@ public class Pieces extends Board implements MouseListener, Runnable{
             if (count2 == 3 && allChess[x][y+ i + 1] == 0 && allChess[x][y- j - 1] == 0) {
                 countForbidden++;
             }
-            //左斜
+            // upper right
             i = 1;
             while (color == allChess[x + i][y + i] && x + i < (n + 2) && (y + i) < (n + 2)) {
                 count3++;
@@ -182,7 +191,7 @@ public class Pieces extends Board implements MouseListener, Runnable{
             if (count3 == 3 && allChess[x + i + 1][y+ i + 1] == 0 && allChess[x -j - 1][y- j - 1] == 0) {
                 countForbidden++;
             }
-            //右斜
+            // upper left
             i = 1;
             while (color == allChess[x - i][y + i] && (x - i) > 0 && (y + i) < (n + 2)) {
                 count4++;
@@ -204,6 +213,13 @@ public class Pieces extends Board implements MouseListener, Runnable{
         return F;
     }
 
+    public void Undo() {
+        int xPosition = undoPositions[totalCount].pX;
+        int yPosition = undoPositions[totalCount].pY;
+        allChess[xPosition][yPosition] = 0;
+        totalCount--;
+    }
+
     @Override
     public void mousePressed(MouseEvent e) {
         if (canPlay) {
@@ -213,6 +229,9 @@ public class Pieces extends Board implements MouseListener, Runnable{
                 int h = (int)Math.round((x - frame) / a);
                 int v = (int)Math.round((y - frame) / a);
                 if (allChess[h][v] == 0 && !isForbiddenMove()) {
+                    UndoPosition undoPosition = new UndoPosition(h, v);
+                    undoPositions[totalCount] = undoPosition;
+                    totalCount++;
                     if (isBlack) {
                         allChess[h][v] = 1;
                         isBlack = false;
@@ -275,6 +294,14 @@ public class Pieces extends Board implements MouseListener, Runnable{
     public void mouseEntered(MouseEvent e) { }
     @Override
     public void mouseExited(MouseEvent e) { }
+}
+
+class UndoPosition {
+    int pX, pY;
+    public UndoPosition(int pX, int pY) {
+        this.pX = pX;
+        this.pY = pY;
+    }
 }
 
 class Win1 {

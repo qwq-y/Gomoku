@@ -1,8 +1,14 @@
 import edu.princeton.cs.algs4.StdDraw;
-import java.awt.*;
 
-public class Board implements Runnable {
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+
+public class Board implements MouseListener, Runnable {
     private int n;
+    Pieces pieces;
 
     public Board() {
         this.n = 14;
@@ -137,5 +143,104 @@ public class Board implements Runnable {
     public void showPicture() {
         StdDraw.picture(840, 100, "Picture.png", 200, 200);
     }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+        double x = e.getX();
+        double y = e.getY();
+        // Stop
+        if ( 720 < x && x < 880 && 270 < y && y < 300) {
+            Stop stop = new Stop();
+            stop.ask();
+        }
+        // Undo
+        if (720 < x && x < 880 && 320 < y && y < 380) {
+            pieces.Undo();
+        }
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) { }
+    @Override
+    public void mouseReleased(MouseEvent e) { }
+    @Override
+    public void mouseEntered(MouseEvent e) { }
+    @Override
+    public void mouseExited(MouseEvent e) { }
 }
 
+class Stop {
+    JFrame frame = new JFrame();
+    JLabel label = new JLabel();
+    JButton yes = new JButton("Yes");
+    JButton no = new JButton("No");
+
+    public void ask() {
+        label.setText("Do you wanner save your game?");
+        frame.add(label);
+        frame.add(yes);
+        frame.add(no);
+        frame.setVisible(true);
+
+        this.frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowOpened(WindowEvent e) {
+                super.windowOpened(e);
+            }
+        });
+        yes.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Save save = new Save();
+                frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+                // 还缺少游戏停止的命令
+            }
+        });
+        no.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+                // 还缺少游戏停止的命令
+            }
+        });
+    }
+}
+
+class Save {
+    Pieces pieces;
+    String name;
+    Frame frame = new JFrame();
+    JTextField text = new JTextField(20);
+    JLabel label = new JLabel();
+    JButton ok = new JButton();
+
+    public String getName() {
+        return name;
+    }
+
+    public void creatName() {
+        label.setText("Creat a name to save: ");
+        frame.add(label);
+        frame.add(text);
+        frame.add(ok);
+        frame.setVisible(true);
+
+        ok.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                name = text.getText();
+                try (PrintWriter save = new PrintWriter(name);) {
+                    int[][] array = pieces.getAllChess();
+                    for (int[] i : array) {
+                        for (int j : i) {
+                            save.print(j + " ");
+                        }
+                    }
+                }catch (FileNotFoundException ex) {
+                    System.out.println("fail to save");
+                }
+                frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+            }
+        });
+    }
+}
