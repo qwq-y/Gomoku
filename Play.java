@@ -6,7 +6,7 @@ import java.awt.event.*;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
-public class Play extends Component implements MouseListener, Runnable {
+public class Play extends Component implements Runnable, MouseListener {
     int n;
     int hour, minute, second;
     double frame, size, a;
@@ -14,8 +14,6 @@ public class Play extends Component implements MouseListener, Runnable {
     int h, v;
     boolean isBlack, canPlay;
     String message;
-    int maxTime;
-    Thread t = new Thread(this);
     int[][] allChess;
     UndoPosition[] undoPositions = new UndoPosition[(n + 2) * (n + 2)];
     int totalCount = 0;
@@ -31,8 +29,6 @@ public class Play extends Component implements MouseListener, Runnable {
         h = (int)Math.round((x - frame) / a);
         v = (int)Math.round((y - frame) / a);
         allChess = new int[n + 2][n + 2];
-        t.start();
-        t.suspend();
     }
 
     public Play(int n, int hour, int minute, int second) {
@@ -47,10 +43,11 @@ public class Play extends Component implements MouseListener, Runnable {
         v = (int)Math.round((y - frame) / a);
         allChess = new int[n + 2][n + 2];
         showBoard();
-        t.start();
-//        t.suspend();
-//        t.resume();
+    }
 
+    @Override
+    public void run() {
+        System.out.println("thread started");
         while (true) {
             if (StdDraw.isMousePressed() ) {
                 x = StdDraw.mouseX();
@@ -97,7 +94,6 @@ public class Play extends Component implements MouseListener, Runnable {
     }
 
     public void drawPieces() {
-        StdDraw.enableDoubleBuffering();
         for(int i = 0; i < n ; i++){
             for(int j = 0; j < n ; j++){
                 double tempX = frame + a * i;
@@ -356,46 +352,81 @@ public class Play extends Component implements MouseListener, Runnable {
 //        return false;
 //    }
 
-    public boolean showTurnTimer(int pause) {
-        StdDraw.setPenColor(194, 188, 255);
-        StdDraw.setFont(new Font("Arial", Font.PLAIN, 20));
-        StdDraw.textLeft(685, 560, "this turn");
-        StdDraw.setFont(new Font("Arial", Font.PLAIN, 60));
-        StdDraw.enableDoubleBuffering();
-        for (int i = pause; i >= 0; i--) {
-            StdDraw.setPenColor(Color.white);
-            StdDraw.filledRectangle(835, 560, 80,40);
-            int s = i % 60;
-            int m = (i / 60) % 60;
-            String limit = String.format("%02d:%02d", m, s);
-            StdDraw.setPenColor(194, 188, 255);
-            StdDraw.text(835, 560, limit);
-            StdDraw.show();
-            if (i == 0) {
-                return true;
-            }
-            StdDraw.pause(1000);
-        }
-        return false;
-    }
+//    public boolean showTurnTimer(int pause) {
+//        StdDraw.setPenColor(194, 188, 255);
+//        StdDraw.setFont(new Font("Arial", Font.PLAIN, 20));
+//        StdDraw.textLeft(685, 560, "this turn");
+//        StdDraw.setFont(new Font("Arial", Font.PLAIN, 60));
+//        StdDraw.enableDoubleBuffering();
+//        for (int i = pause; i >= 0; i--) {
+//            StdDraw.setPenColor(Color.white);
+//            StdDraw.filledRectangle(835, 560, 80,40);
+//            int s = i % 60;
+//            int m = (i / 60) % 60;
+//            String limit = String.format("%02d:%02d", m, s);
+//            StdDraw.setPenColor(194, 188, 255);
+//            StdDraw.text(835, 560, limit);
+//            StdDraw.show();
+//            if (i == 0) {
+//                return true;
+//            }
+//            StdDraw.pause(1000);
+//        }
+//        return false;
+//    }
 
-    public void showScores(String score1, String score2) {
-        // squares
-        StdDraw.setPenColor(255, 235, 166);
-        StdDraw.filledSquare(735, 455, 50);
-        StdDraw.filledSquare(865, 455, 50);
-        // digits
-        StdDraw.setPenColor(255, 161, 84);
-        StdDraw.setFont(new Font("Arial", Font.PLAIN, 75));
-        StdDraw.text(735, 445, score1);
-        StdDraw.text(865, 445, score2);
-        // "VS"
-        StdDraw.setFont(new Font("Arial", Font.PLAIN, 35));
-        StdDraw.text(800, 435, "VS");
-    }
+//    public void showScores(String score1, String score2) {
+//        // squares
+//        StdDraw.setPenColor(255, 235, 166);
+//        StdDraw.filledSquare(735, 455, 50);
+//        StdDraw.filledSquare(865, 455, 50);
+//        // digits
+//        StdDraw.setPenColor(255, 161, 84);
+//        StdDraw.setFont(new Font("Arial", Font.PLAIN, 75));
+//        StdDraw.text(735, 445, score1);
+//        StdDraw.text(865, 445, score2);
+//        // "VS"
+//        StdDraw.setFont(new Font("Arial", Font.PLAIN, 35));
+//        StdDraw.text(800, 435, "VS");
+//    }
 
     @Override
     public void mousePressed(MouseEvent e) {
+        x = StdDraw.mouseX();
+        y = StdDraw.mouseY();
+        StdDraw.pause(100);
+
+        if (frame <= x && x <=  size - frame && frame <= y && y <= size - frame) {
+            if (allChess[h][v] == 0 && !isForbiddenMove()) {
+                UndoPosition undoPosition = new UndoPosition(h, v);
+                undoPositions[totalCount] = undoPosition;
+                totalCount++;
+                if (isBlack) {
+                    allChess[h][v] = 1;
+                    isBlack = false;
+                    message = "Player2' turn";
+                } else {
+                    allChess[h][v] = 2;
+                    isBlack = true;
+                    message = "Player1's turn";
+                }
+                if (this.checkWin()) {
+                    if (allChess[h][v] == 1) {
+                        canPlay = false;
+                    }
+                    if (allChess[h][v] == 2) {
+                        canPlay = false;
+                    }
+                }
+            }
+            else if (allChess[h][v] == 0 && isForbiddenMove()) {
+                JOptionPane.showMessageDialog(null,"A 33 forbidden move!");
+            }
+            else {
+                JOptionPane.showMessageDialog(null, "There is already a chess! ");
+            }
+            drawPieces();
+        }
 //        double x = e.getX();
 //        double y = e.getY();
 //        // Stop
@@ -417,86 +448,83 @@ public class Play extends Component implements MouseListener, Runnable {
     public void mouseEntered(MouseEvent e) { }
     @Override
     public void mouseExited(MouseEvent e) { }
-    @Override
-    public void run() { }
 }
 
-class Stop {
-    JFrame frame = new JFrame();
-    JLabel label = new JLabel();
-    JButton yes = new JButton("Yes");
-    JButton no = new JButton("No");
-
-    public void ask() {
-        label.setText("Do you wanner save your game?");
-        frame.add(label);
-        frame.add(yes);
-        frame.add(no);
-        frame.setVisible(true);
-
-        this.frame.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowOpened(WindowEvent e) {
-                super.windowOpened(e);
-            }
-        });
-        yes.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Save save = new Save();
-                frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
-                // 还缺少游戏停止的命令
-            }
-        });
-        no.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
-                // 还缺少游戏停止的命令
-            }
-        });
-    }
-
-}
-
-class Save {
-    Play board;
-    String name;
-    Frame frame = new JFrame();
-    JTextField text = new JTextField(20);
-    JLabel label = new JLabel();
-    JButton ok = new JButton();
-
-    public String getName() {
-        return name;
-    }
-
-    public void creatName() {
-        label.setText("Creat a name to save: ");
-        frame.add(label);
-        frame.add(text);
-        frame.add(ok);
-        frame.setVisible(true);
-
-        ok.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                name = text.getText();
-                try (PrintWriter save = new PrintWriter(name);) {
-                    int[][] array = board.getAllChess();
-                    for (int[] i : array) {
-                        for (int j : i) {
-                            save.print(j + " ");
-                        }
-                    }
-                }catch (FileNotFoundException ex) {
-                    System.out.println("fail to save");
-                }
-                frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
-            }
-        });
-    }
-}
+//class Stop {
+//    JFrame frame = new JFrame();
+//    JLabel label = new JLabel();
+//    JButton yes = new JButton("Yes");
+//    JButton no = new JButton("No");
+//
+//    public void ask() {
+//        label.setText("Do you wanner save your game?");
+//        frame.add(label);
+//        frame.add(yes);
+//        frame.add(no);
+//        frame.setVisible(true);
+//
+//        this.frame.addWindowListener(new WindowAdapter() {
+//            @Override
+//            public void windowOpened(WindowEvent e) {
+//                super.windowOpened(e);
+//            }
+//        });
+//        yes.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                Save save = new Save();
+//                frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+//                //
+//            }
+//        });
+//        no.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+//                //
+//            }
+//        });
+//    }
+//}
+//
+//class Save {
+//    Play board;
+//    String name;
+//    Frame frame = new JFrame();
+//    JTextField text = new JTextField(20);
+//    JLabel label = new JLabel();
+//    JButton ok = new JButton();
+//
+//    public String getName() {
+//        return name;
+//    }
+//
+//    public void creatName() {
+//        label.setText("Creat a name to save: ");
+//        frame.add(label);
+//        frame.add(text);
+//        frame.add(ok);
+//        frame.setVisible(true);
+//
+//        ok.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                name = text.getText();
+//                try (PrintWriter save = new PrintWriter(name);) {
+//                    int[][] array = board.getAllChess();
+//                    for (int[] i : array) {
+//                        for (int j : i) {
+//                            save.print(j + " ");
+//                        }
+//                    }
+//                }catch (FileNotFoundException ex) {
+//                    System.out.println("fail to save");
+//                }
+//                frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+//            }
+//        });
+//    }
+//}
 
 class UndoPosition {
     int pX, pY;
