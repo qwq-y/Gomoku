@@ -6,7 +6,7 @@ import java.awt.event.*;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
-public class Play extends Component implements Runnable, MouseListener {
+public class Play extends Component {
     int n;
     int hour, minute, second;
     double frame, size, a;
@@ -25,10 +25,10 @@ public class Play extends Component implements Runnable, MouseListener {
         second = 0;
         frame = 40;
         size = 700;
-        a = (size - 2*frame) / n;
-        h = (int)Math.round((x - frame) / a);
-        v = (int)Math.round((y - frame) / a);
+        a = (size - 2 * frame) / n;
         allChess = new int[n + 2][n + 2];
+        isBlack = true;
+        canPlay = true;
     }
 
     public Play(int n, int hour, int minute, int second) {
@@ -38,24 +38,26 @@ public class Play extends Component implements Runnable, MouseListener {
         this.second = second;
         frame = 40;
         size = 700;
-        a = (size - 2*frame) / n;
-        h = (int)Math.round((x - frame) / a);
-        v = (int)Math.round((y - frame) / a);
+        a = (size - 2 * frame) / n;
         allChess = new int[n + 2][n + 2];
-        showBoard();
     }
 
-    @Override
     public void run() {
-        System.out.println("thread started");
+        System.out.println("entered");
+        showBoard();
         while (true) {
-            if (StdDraw.isMousePressed() ) {
-                x = StdDraw.mouseX();
-                y = StdDraw.mouseY();
-                StdDraw.pause(100);
-
-                if (frame <= x && x <=  size - frame && frame <= y && y <= size - frame) {
-                    if (allChess[h][v] == 0 && !isForbiddenMove()) {
+            if (StdDraw.isMousePressed()) {
+                StdDraw.pause(300);
+                double x = StdDraw.mouseX();
+                double y = StdDraw.mouseY();
+                h = (int) Math.round((x - frame) / a);
+                v = (int) Math.round((y - frame) / a);
+                System.out.println("pressed1");
+                // chess
+//                if (frame <= x && x <=  size - frame && frame <= y && y <= size - frame && canPlay) {
+                if (0 <= x && x <= size && 0 <= y && y <= size && canPlay) {
+                    if (allChess[h][v] == 0 && isForbiddenMove() == false) {
+                        System.out.println("wozai!");
                         UndoPosition undoPosition = new UndoPosition(h, v);
                         undoPositions[totalCount] = undoPosition;
                         totalCount++;
@@ -63,12 +65,15 @@ public class Play extends Component implements Runnable, MouseListener {
                             allChess[h][v] = 1;
                             isBlack = false;
                             message = "Player2' turn";
+                            System.out.println("111");
                         } else {
                             allChess[h][v] = 2;
                             isBlack = true;
                             message = "Player1's turn";
+                            System.out.println("222");
                         }
-                        if (this.checkWin()) {
+                        if (checkWin()) {
+                            System.out.println();
                             if (allChess[h][v] == 1) {
                                 canPlay = false;
                             }
@@ -76,14 +81,53 @@ public class Play extends Component implements Runnable, MouseListener {
                                 canPlay = false;
                             }
                         }
+                        drawPieces();
+//                        StdDraw.pause(100);
                     }
                     else if (allChess[h][v] == 0 && isForbiddenMove()) {
                         JOptionPane.showMessageDialog(null,"A 33 forbidden move!");
                     }
-                    else {
+                    else if (allChess[h][v] != 0) {
                         JOptionPane.showMessageDialog(null, "There is already a chess! ");
                     }
+                }
+                // undo
+                else if (720 <= x && x <= 880 && 320 <= y && y <= 380) {
+                    System.out.println("undo");
+                    int xPosition = undoPositions[totalCount].pX;
+                    int yPosition = undoPositions[totalCount].pY;
+                    allChess[xPosition][yPosition] = 0;
+                    totalCount--;
                     drawPieces();
+//                StdDraw.pause(100);
+                }
+                // stop
+                else if (720 <= x && x <= 880 && 240 <= y && y <= 300) {
+                    System.out.println("stop");
+                    int stop = JOptionPane.showConfirmDialog(null, "Wanner save this game for the next time?");
+                    // save
+                    if (stop == 0) {
+                        System.out.println("save");
+                        String saveName = JOptionPane.showInputDialog("Create a name to save: ");
+                        try (PrintWriter save = new PrintWriter(saveName + ".txt");) {
+                            for (int[] i : allChess) {
+                                for (int j : i) {
+                                    save.print(j + " ");
+                                }
+                            }
+                        }catch (FileNotFoundException ex) {
+                            System.out.println("fail to save");
+                        }
+                        canPlay = false;
+                    }
+                    // unsave
+                    if (stop == 1) {
+                        System.out.println("unsave");
+                        canPlay = false;
+                    }
+                }
+                else {
+                    System.out.println("NoAnswer~");
                 }
             }
         }
@@ -94,8 +138,9 @@ public class Play extends Component implements Runnable, MouseListener {
     }
 
     public void drawPieces() {
-        for(int i = 0; i < n ; i++){
-            for(int j = 0; j < n ; j++){
+        System.out.println("pieces!");
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
                 double tempX = frame + a * i;
                 double tempY = frame + a * j;
                 if (allChess[i][j] == 1) {
@@ -127,44 +172,46 @@ public class Play extends Component implements Runnable, MouseListener {
         StdDraw.show();
     }
 
-    private int checkCount(int xChange, int yChange, int color){
+
+    private int checkCount(int xChange, int yChange, int color) {
         int count = 1;
         int tempX = xChange;
         int tempY = yChange;
-        while(color == allChess[h + xChange][v + yChange] && (h + xChange) >= 0 && (x + xChange) <= (n + 2) &&
-                (y + yChange) >= 0 && (y + yChange) <= (n + 2)){
-            count ++;
-            if(xChange!=0){
-                if(xChange > 0) {
+
+        while (color == allChess[h + xChange][v + yChange] && (h + xChange) >= 0 && (x + xChange) <= (n + 2) &&
+                (y + yChange) >= 0 && (y + yChange) <= (n + 2)) {
+            count++;
+            if (xChange != 0) {
+                if (xChange > 0) {
                     xChange++;
-                }else{
+                } else {
                     xChange--;
                 }
             }
-            if(yChange != 0){
-                if(yChange > 0) {
+            if (yChange != 0) {
+                if (yChange > 0) {
                     yChange++;
-                }else{
+                } else {
                     yChange--;
                 }
             }
         }
         xChange = tempX;
         yChange = tempY;
-        while(color == allChess[h - xChange][v - yChange]&& (h - xChange) >= 0 && (h - xChange) <= (n + 2) &&
-                (v - yChange) >= 0 && (v - yChange) <= (n + 2)){
-            count ++;
-            if(xChange!=0){
-                if(xChange > 0) {
+        while (color == allChess[h - xChange][v - yChange] && (h - xChange) >= 0 && (h - xChange) <= (n + 2) &&
+                (v - yChange) >= 0 && (v - yChange) <= (n + 2)) {
+            count++;
+            if (xChange != 0) {
+                if (xChange > 0) {
                     xChange++;
-                }else{
+                } else {
                     xChange--;
                 }
             }
-            if(yChange != 0){
-                if(yChange > 0) {
+            if (yChange != 0) {
+                if (yChange > 0) {
                     yChange++;
-                }else{
+                } else {
                     yChange--;
                 }
             }
@@ -179,18 +226,17 @@ public class Play extends Component implements Runnable, MouseListener {
         count = this.checkCount(1, 0, color);
         if (count == 5) {
             flag = true;
-        }
-        else {
-            count = this.checkCount(0,1,color);
-            if(count == 5) {
+        } else {
+            count = this.checkCount(0, 1, color);
+            if (count == 5) {
                 flag = true;
-            }else{
-                count = this.checkCount(1,-1,color);
-                if(count == 5){
+            } else {
+                count = this.checkCount(1, -1, color);
+                if (count == 5) {
                     flag = true;
-                }else{
-                    count = this.checkCount(1,1,color);
-                    if(count == 5){
+                } else {
+                    count = this.checkCount(1, 1, color);
+                    if (count == 5) {
                         flag = true;
                     }
                 }
@@ -215,7 +261,7 @@ public class Play extends Component implements Runnable, MouseListener {
                 i++;
             }
             int j = 1;
-            while (color == allChess[h - j][v] && (h - j) > 0 ) {
+            while (color == allChess[h - j][v] && (h - j) > 0) {
                 count1++;
                 j++;
             }
@@ -243,11 +289,11 @@ public class Play extends Component implements Runnable, MouseListener {
                 i++;
             }
             j = 1;
-            while (color == allChess[h - j][v - j]&& (h - j) > 0 && (v - j) >0) {
+            while (color == allChess[h - j][v - j] && (h - j) > 0 && (v - j) > 0) {
                 count3++;
                 j++;
             }
-            if (count3 == 3 && allChess[h + i + 1][v + i + 1] == 0 && allChess[h -j - 1][v - j - 1] == 0) {
+            if (count3 == 3 && allChess[h + i + 1][v + i + 1] == 0 && allChess[h - j - 1][v - j - 1] == 0) {
                 countForbidden++;
             }
             // upper left
@@ -261,38 +307,31 @@ public class Play extends Component implements Runnable, MouseListener {
                 count4++;
                 j++;
             }
-            if (count4 == 3 && allChess[h - i - 1][v + i + 1] == 0 && allChess[h + j + 1][v- j - 1] == 0) {
+            if (count4 == 3 && allChess[h - i - 1][v + i + 1] == 0 && allChess[h + j + 1][v - j - 1] == 0) {
                 countForbidden++;
             }
 
-            if(countForbidden >= 2){
+            if (countForbidden >= 2) {
                 F = true;
             }
         }
         return F;
     }
 
-    public void Undo() {
-        int xPosition = undoPositions[totalCount].pX;
-        int yPosition = undoPositions[totalCount].pY;
-        allChess[xPosition][yPosition] = 0;
-        totalCount--;
-    }
-
     public void showBoard() {
-        StdDraw.setCanvasSize(940,700);
+        StdDraw.setCanvasSize(940, 700);
         StdDraw.setXscale(0.0, 940.0);
         StdDraw.setYscale(0.0, 700.0);
         // board
         StdDraw.setPenColor(175, 167, 255);
-        double a = (size - 2*frame) / n;
+        double a = (size - 2 * frame) / n;
         double i = frame;
-        while (i <= size-frame + 1) {
-            StdDraw.line(i, frame, i, size-frame);
-            StdDraw.line(frame, i, size-frame, i);
+        while (i <= size - frame + 1) {
+            StdDraw.line(i, frame, i, size - frame);
+            StdDraw.line(frame, i, size - frame, i);
             i += a;
         }
-        StdDraw.filledCircle(n/2 * a + frame, n/2 * a +frame, 0.12 * a);
+        StdDraw.filledCircle(n / 2 * a + frame, n / 2 * a + frame, 0.12 * a);
         StdDraw.show();
         // "Undo" button
         StdDraw.setPenColor(0, 187, 255);
@@ -310,25 +349,26 @@ public class Play extends Component implements Runnable, MouseListener {
         StdDraw.setPenColor(255, 109, 197);
         StdDraw.text(800, 265, "Stop");
         // picture
-        StdDraw.picture(840, 100, "Picture.png", 200, 200);
+        //StdDraw.picture(840, 100, "Picture.png", 200, 200);
         // total timer
-        StdDraw.enableDoubleBuffering();
-        StdDraw.setFont(new Font("Arial", Font.PLAIN, 30));
-        int t = 3600 * hour + 60 * minute + second;
-        for (int j = t; j >= 0; j--) {
-            StdDraw.setPenColor(Color.white);
-            StdDraw.filledRectangle(745, 640, 60, 30);
-            int s = j % 60;
-            int m = (j / 60) % 60;
-            int h = j / 3600;
-            String time = String.format("%02d:%02d:%02d", h, m, s);
-            StdDraw.setPenColor(145, 133, 255);
-            StdDraw.textLeft(685, 640, time);
-            StdDraw.show();
-            StdDraw.pause(1000);
-        }
+//        StdDraw.enableDoubleBuffering();
+//        StdDraw.setFont(new Font("Arial", Font.PLAIN, 30));
+//        int t = 3600 * hour + 60 * minute + second;
+//        for (int j = t; j >= 0; j--) {
+//            StdDraw.setPenColor(Color.white);
+//            StdDraw.filledRectangle(745, 640, 60, 30);
+//            int s = j % 60;
+//            int m = (j / 60) % 60;
+//            int h = j / 3600;
+//            String time = String.format("%02d:%02d:%02d", h, m, s);
+//            StdDraw.setPenColor(145, 133, 255);
+//            StdDraw.textLeft(685, 640, time);
+//            StdDraw.show();
+//            StdDraw.pause(1000);
+//        }
         // turn timer
     }
+}
 
 //    public boolean showTotalTimer(int hour, int minute, int second) {
 //        StdDraw.enableDoubleBuffering();
@@ -390,146 +430,3 @@ public class Play extends Component implements Runnable, MouseListener {
 //        StdDraw.text(800, 435, "VS");
 //    }
 
-    @Override
-    public void mousePressed(MouseEvent e) {
-        x = StdDraw.mouseX();
-        y = StdDraw.mouseY();
-        StdDraw.pause(100);
-
-        if (frame <= x && x <=  size - frame && frame <= y && y <= size - frame) {
-            if (allChess[h][v] == 0 && !isForbiddenMove()) {
-                UndoPosition undoPosition = new UndoPosition(h, v);
-                undoPositions[totalCount] = undoPosition;
-                totalCount++;
-                if (isBlack) {
-                    allChess[h][v] = 1;
-                    isBlack = false;
-                    message = "Player2' turn";
-                } else {
-                    allChess[h][v] = 2;
-                    isBlack = true;
-                    message = "Player1's turn";
-                }
-                if (this.checkWin()) {
-                    if (allChess[h][v] == 1) {
-                        canPlay = false;
-                    }
-                    if (allChess[h][v] == 2) {
-                        canPlay = false;
-                    }
-                }
-            }
-            else if (allChess[h][v] == 0 && isForbiddenMove()) {
-                JOptionPane.showMessageDialog(null,"A 33 forbidden move!");
-            }
-            else {
-                JOptionPane.showMessageDialog(null, "There is already a chess! ");
-            }
-            drawPieces();
-        }
-//        double x = e.getX();
-//        double y = e.getY();
-//        // Stop
-//        if ( 720 < x && x < 880 && 270 < y && y < 300) {
-//            Stop stop = new Stop();
-//            stop.ask();
-//        }
-//        // Undo
-//        if (720 < x && x < 880 && 320 < y && y < 380) {
-//            Undo();
-//        }
-    }
-
-    @Override
-    public void mouseClicked(MouseEvent e) { }
-    @Override
-    public void mouseReleased(MouseEvent e) { }
-    @Override
-    public void mouseEntered(MouseEvent e) { }
-    @Override
-    public void mouseExited(MouseEvent e) { }
-}
-
-//class Stop {
-//    JFrame frame = new JFrame();
-//    JLabel label = new JLabel();
-//    JButton yes = new JButton("Yes");
-//    JButton no = new JButton("No");
-//
-//    public void ask() {
-//        label.setText("Do you wanner save your game?");
-//        frame.add(label);
-//        frame.add(yes);
-//        frame.add(no);
-//        frame.setVisible(true);
-//
-//        this.frame.addWindowListener(new WindowAdapter() {
-//            @Override
-//            public void windowOpened(WindowEvent e) {
-//                super.windowOpened(e);
-//            }
-//        });
-//        yes.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                Save save = new Save();
-//                frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
-//                //
-//            }
-//        });
-//        no.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
-//                //
-//            }
-//        });
-//    }
-//}
-//
-//class Save {
-//    Play board;
-//    String name;
-//    Frame frame = new JFrame();
-//    JTextField text = new JTextField(20);
-//    JLabel label = new JLabel();
-//    JButton ok = new JButton();
-//
-//    public String getName() {
-//        return name;
-//    }
-//
-//    public void creatName() {
-//        label.setText("Creat a name to save: ");
-//        frame.add(label);
-//        frame.add(text);
-//        frame.add(ok);
-//        frame.setVisible(true);
-//
-//        ok.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                name = text.getText();
-//                try (PrintWriter save = new PrintWriter(name);) {
-//                    int[][] array = board.getAllChess();
-//                    for (int[] i : array) {
-//                        for (int j : i) {
-//                            save.print(j + " ");
-//                        }
-//                    }
-//                }catch (FileNotFoundException ex) {
-//                    System.out.println("fail to save");
-//                }
-//                frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
-//            }
-//        });
-//    }
-//}
-
-class UndoPosition {
-    int pX, pY;
-    public UndoPosition(int pX, int pY) {
-        this.pX = pX;
-        this.pY = pY;
-    }
-}
