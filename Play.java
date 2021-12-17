@@ -1,11 +1,17 @@
 import edu.princeton.cs.algs4.StdDraw;
-
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.Scanner;
 
+/*
+现在斜着赢不算
+棋盘边界下棋会数组越界
+计时系统
+人机
+ */
 public class Play extends Component {
     int n;
     int hour, minute, second;
@@ -15,8 +21,9 @@ public class Play extends Component {
     boolean isBlack, canPlay, pressed;
     String message;
     int[][] allChess;
-    UndoPosition[] undoPositions = new UndoPosition[(n + 2) * (n + 2)];
-    int totalCount = 0;
+    UndoPosition[] undoPositions;
+    int totalCount;
+    int undoCount1, undoCount2;
 
     public Play() {
         this.n = 14;
@@ -26,9 +33,17 @@ public class Play extends Component {
         frame = 40;
         size = 700;
         a = (size - 2 * frame) / n;
+        // 0 represents null, 1 represents black, 2 represents white
         allChess = new int[n + 2][n + 2];
+        undoPositions = new UndoPosition[(n + 2) * (n + 2)];
+        for (int i = 0; i < undoPositions.length; i++) {
+            undoPositions[i] = new UndoPosition();
+        }
         isBlack = true;
-        canPlay = true;
+        canPlay = false;
+        totalCount = 0;
+        undoCount1 = 0;
+        undoCount2 = 0;
     }
 
     public Play(int n, int hour, int minute, int second) {
@@ -40,6 +55,14 @@ public class Play extends Component {
         size = 700;
         a = (size - 2 * frame) / n;
         allChess = new int[n + 2][n + 2];
+        undoPositions = new UndoPosition[(n + 2) * (n + 2)];
+        for (int i = 0; i < undoPositions.length; i++) {
+            undoPositions[i] = new UndoPosition();
+        }
+        isBlack = true;
+        canPlay = false;
+        undoCount1 = 0;
+        undoCount2 = 0;
     }
 
     public boolean getPressed() {
@@ -52,15 +75,15 @@ public class Play extends Component {
         while (true) {
             if (StdDraw.isMousePressed()) {
                 pressed = true;
-                StdDraw.pause(300);
+                StdDraw.pause(500);
                 double x = StdDraw.mouseX();
                 double y = StdDraw.mouseY();
                 h = (int) Math.round((x - frame) / a);
                 v = (int) Math.round((y - frame) / a);
                 System.out.println("pressed1");
-                // chess
-//                if (frame <= x && x <=  size - frame && frame <= y && y <= size - frame && canPlay) {
-                if (0 <= x && x <= size && 0 <= y && y <= size && canPlay) {
+                // click chess
+                if (frame <= x && x <=  size - frame && frame <= y && y <= size - frame && canPlay) {
+//                if (0 <= x && x <= size && 0 <= y && y <= size && canPlay) {
                     if (allChess[h][v] == 0 && isForbiddenMove() == false) {
                         UndoPosition undoPosition = new UndoPosition(h, v);
                         undoPositions[totalCount] = undoPosition;
@@ -74,34 +97,108 @@ public class Play extends Component {
                             isBlack = true;
                             message = "Player1's turn";
                         }
+                        drawPieces();
+//                        StdDraw.pause(100);
                         if (checkWin()) {
                             System.out.println();
                             if (allChess[h][v] == 1) {
                                 canPlay = false;
+                                JOptionPane.showMessageDialog(null, "Player1 wins!");
                             }
                             if (allChess[h][v] == 2) {
                                 canPlay = false;
+                                JOptionPane.showMessageDialog(null, "Player2 wins!");
                             }
                         }
-                        drawPieces();
-//                        StdDraw.pause(100);
                     } else if (allChess[h][v] == 0 && isForbiddenMove()) {
                         JOptionPane.showMessageDialog(null, "A 33 forbidden move!");
                     } else if (allChess[h][v] != 0) {
                         JOptionPane.showMessageDialog(null, "There is already a chess! ");
                     }
                 }
-                // undo
-                else if (720 <= x && x <= 880 && 320 <= y && y <= 380) {
-                    System.out.println("undo");
-                    int xPosition = undoPositions[totalCount].pX;
-                    int yPosition = undoPositions[totalCount].pY;
-                    allChess[xPosition][yPosition] = 0;
-                    totalCount--;
-                    drawPieces();
-//                StdDraw.pause(100);
+                // click play
+                else if (720 <= x && x <= 880 && 400 <= y && y <= 460) {
+                    System.out.println("play");
+                    int play = JOptionPane.showConfirmDialog(null, "A new start?");
+                    // new start
+                    if (play == 0) {
+                        for (int i = 0; i < allChess.length; i++) {
+                            for (int j = 0; j < allChess[i].length; j++) {
+                                allChess[i][j] = 0;
+                            }
+                        }
+                        StdDraw.clear();
+                        showBoard();
+                        drawPieces();
+                        totalCount = 0;
+                        canPlay = true;
+                    }
+                    // load
+                    if (play == 1) {
+                        // choose one
+                        String loadName = JOptionPane.showInputDialog("Recall a pre-saved game to load:");
+                        File file = new File(loadName + ".txt");
+                        int count1 = 0;
+                        int count2 = 0;
+                        try {
+                            // show pieces
+                            Scanner scanner = new Scanner(file);
+                            while (scanner.hasNext()) {
+                                for (int i = 0; i < allChess.length; i++) {
+                                    for (int j = 0; j < allChess[i].length; j++) {
+                                        allChess[i][j] = scanner.nextInt();
+                                        if (allChess[i][j] == 1) {
+                                            count1++;
+                                        }
+                                        if (allChess[i][j] == 2) {
+                                            count2++;
+                                        }
+                                    }
+                                }
+                            }
+                            scanner.close();
+                            drawPieces();
+                            // decide whose turn
+                            if (count1 > count2) {
+                                isBlack = false;
+                            }
+                            canPlay = true;
+                        } catch (FileNotFoundException e) {
+                            System.out.println("FileNotFound");
+                            e.printStackTrace();
+                        }
+                    }
                 }
-                // stop
+                // click undo
+                else if (720 <= x && x <= 880 && 320 <= y && y <= 380) {
+                    if (isBlack) {
+                        undoCount2++;
+                        isBlack = false;
+                    }
+                    else if (isBlack == false) {
+                        undoCount1++;
+                        isBlack = true;
+                    }
+                    // should be less than 3 times each side
+                    if ((isBlack == false && undoCount2 <= 3) || (isBlack && undoCount1 <= 3)) {
+                        System.out.println("undo1");
+                        int xPosition = undoPositions[totalCount - 1].pX;
+                        int yPosition = undoPositions[totalCount - 1].pY;
+//                    System.out.println(xPosition + " " + yPosition);
+                        allChess[xPosition][yPosition] = 0;
+                        totalCount--;
+                        StdDraw.enableDoubleBuffering();
+                        StdDraw.clear();
+                        showBoard();
+                        drawPieces();
+                        System.out.println("undo2");
+                        StdDraw.pause(300);
+                    }
+                    else if ((isBlack == false && undoCount2 > 3) || (isBlack && undoCount1 > 3)) {
+                        JOptionPane.showMessageDialog(null, "You have already undone three times!");
+                    }
+                }
+                // click stop
                 else if (720 <= x && x <= 880 && 240 <= y && y <= 300) {
                     System.out.println("stop");
                     int stop = JOptionPane.showConfirmDialog(null, "Wanner save this game for the next time?");
@@ -125,7 +222,19 @@ public class Play extends Component {
                         System.out.println("unsave");
                         canPlay = false;
                     }
-                } else {
+                }
+                // click settings
+                else if (720 <= x && x <= 880 && 160 <= y && y <= 220) {
+                    String boardSize = JOptionPane.showInputDialog("Input N to creat an NxN board: ");
+                    n = Integer.parseInt(boardSize);
+                    allChess = new int[n + 2][n + 2];
+                    a = (size - 2 * frame) / n;
+                    undoPositions = new UndoPosition[(n + 2) * (n + 2)];
+                    isBlack = true;
+                    showBoard();
+                }
+                // other click
+                else {
                     System.out.println("NoAnswer~");
                 }
             }
@@ -143,27 +252,11 @@ public class Play extends Component {
                 double tempX = frame + a * i;
                 double tempY = frame + a * j;
                 if (allChess[i][j] == 1) {
-//                    switch (settings.getPlayer1()) {
-//                        case 1:
-//                            StdDraw.setPenColor(Color.BLACK);
-//                        case 2 :
-//                            StdDraw.setPenColor(Color.BLACK);
-//                        default:
-//                            StdDraw.setPenColor(Color.BLACK);
-//                    }
-                    StdDraw.setPenColor(Color.BLACK);
+                    StdDraw.setPenColor(Color.CYAN);
                     StdDraw.filledCircle(tempX, tempY, 0.3 * a);
                 }
                 if (allChess[i][j] == 2) {
-//                    switch (settings.getPlayer1()) {
-//                        case 1:
-//                            StdDraw.setPenColor(Color.YELLOW);
-//                        case 2 :
-//                            StdDraw.setPenColor(Color.YELLOW);
-//                        default:
-//                            StdDraw.setPenColor(Color.YELLOW);
-//                    }
-                    StdDraw.setPenColor(Color.YELLOW);
+                    StdDraw.setPenColor(Color.ORANGE);
                     StdDraw.filledCircle(tempX, tempY, 0.3 * a);
                 }
             }
@@ -275,7 +368,7 @@ public class Play extends Component {
                 count1++;
                 j++;
             }
-            if (count1 == 3 && allChess[h + i + 1][v] == 0 && allChess[h - j - 1][v] == 0) {
+            if (count1 >= 3 && allChess[h + i + 1][v] == 0 && allChess[h - j - 1][v] == 0) {
                 countForbidden++;
             }
             // vertical
@@ -289,7 +382,7 @@ public class Play extends Component {
                 count2++;
                 j++;
             }
-            if (count2 == 3 && allChess[h][v + i + 1] == 0 && allChess[h][v - j - 1] == 0) {
+            if (count2 >= 3 && allChess[h][v + i + 1] == 0 && allChess[h][v - j - 1] == 0) {
                 countForbidden++;
             }
             // upper right
@@ -303,7 +396,7 @@ public class Play extends Component {
                 count3++;
                 j++;
             }
-            if (count3 == 3 && allChess[h + i + 1][v + i + 1] == 0 && allChess[h - j - 1][v - j - 1] == 0) {
+            if (count3 >= 3 && allChess[h + i + 1][v + i + 1] == 0 && allChess[h - j - 1][v - j - 1] == 0) {
                 countForbidden++;
             }
             // upper left
@@ -317,7 +410,7 @@ public class Play extends Component {
                 count4++;
                 j++;
             }
-            if (count4 == 3 && allChess[h - i - 1][v + i + 1] == 0 && allChess[h + j + 1][v - j - 1] == 0) {
+            if (count4 >= 3 && allChess[h - i - 1][v + i + 1] == 0 && allChess[h + j + 1][v - j - 1] == 0) {
                 countForbidden++;
             }
 
@@ -329,6 +422,7 @@ public class Play extends Component {
     }
 
     public void showBoard() {
+        StdDraw.enableDoubleBuffering();
         StdDraw.setCanvasSize(940, 700);
         StdDraw.setXscale(0.0, 940.0);
         StdDraw.setYscale(0.0, 700.0);
@@ -341,14 +435,21 @@ public class Play extends Component {
             StdDraw.line(frame, i, size - frame, i);
             i += a;
         }
-        StdDraw.filledCircle(n / 2 * a + frame, n / 2 * a + frame, 0.12 * a);
+//        StdDraw.filledCircle(n / 2 * a + frame, n / 2 * a + frame, 0.12 * a);
         StdDraw.show();
+        // "Play" button
+        StdDraw.setPenColor(255, 161, 84);
+        StdDraw.filledRectangle(804, 426, 80, 30);
+        StdDraw.setPenColor(255, 235, 166);
+        StdDraw.filledRectangle(800, 430, 80, 30);
+        StdDraw.setFont(new Font("Arial", Font.PLAIN, 25));
+        StdDraw.setPenColor(255, 161, 84);
+        StdDraw.text(800, 425, "Play");
         // "Undo" button
         StdDraw.setPenColor(0, 187, 255);
         StdDraw.filledRectangle(804, 346, 80, 30);
         StdDraw.setPenColor(201, 241, 255);
         StdDraw.filledRectangle(800, 350, 80, 30);
-        StdDraw.setFont(new Font("Arial", Font.PLAIN, 25));
         StdDraw.setPenColor(0, 187, 255);
         StdDraw.text(800, 345, "Undo");
         // "Stop" button
@@ -358,70 +459,14 @@ public class Play extends Component {
         StdDraw.filledRectangle(800, 270, 80, 30);
         StdDraw.setPenColor(255, 109, 197);
         StdDraw.text(800, 265, "Stop");
+        // "Settings" button
+        StdDraw.setPenColor(0, 187, 255);
+        StdDraw.filledRectangle(804, 186, 80, 30);
+        StdDraw.setPenColor(201, 241, 255);
+        StdDraw.filledRectangle(800, 190, 80, 30);
+        StdDraw.setPenColor(0, 187, 255);
+        StdDraw.text(800, 185, "Settings");
         // picture
         //StdDraw.picture(840, 100, "Picture.png", 200, 200);
     }
-
-
-//    public boolean showTotalTimer(int hour, int minute, int second) {
-//        System.out.println("timer!");
-//        StdDraw.enableDoubleBuffering();
-//        StdDraw.setFont(new Font("Arial", Font.PLAIN, 30));
-//        int t = 3600 * hour + 60 * minute + second;
-//        for (int i = t; i >= 0; i--) {
-//            StdDraw.setPenColor(Color.white);
-//            StdDraw.filledRectangle(745, 640, 60, 30);
-//            int s = i % 60;
-//            int m = (i / 60) % 60;
-//            int h = i / 3600;
-//            String time = String.format("%02d:%02d:%02d", h, m, s);
-//            StdDraw.setPenColor(145, 133, 255);
-//            StdDraw.textLeft(685, 640, time);
-//            StdDraw.show();
-//            if (i == 0) {
-//                return true;
-//            }
-//            StdDraw.pause(1000);
-//        }
-//        return false;
-//    }
-
-//    public boolean showTurnTimer(int pause) {
-//        StdDraw.setPenColor(194, 188, 255);
-//        StdDraw.setFont(new Font("Arial", Font.PLAIN, 20));
-//        StdDraw.textLeft(685, 560, "this turn");
-//        StdDraw.setFont(new Font("Arial", Font.PLAIN, 60));
-//        StdDraw.enableDoubleBuffering();
-//        for (int i = pause; i >= 0; i--) {
-//            StdDraw.setPenColor(Color.white);
-//            StdDraw.filledRectangle(835, 560, 80,40);
-//            int s = i % 60;
-//            int m = (i / 60) % 60;
-//            String limit = String.format("%02d:%02d", m, s);
-//            StdDraw.setPenColor(194, 188, 255);
-//            StdDraw.text(835, 560, limit);
-//            StdDraw.show();
-//            if (i == 0) {
-//                return true;
-//            }
-//            StdDraw.pause(1000);
-//        }
-//        return false;
-//    }
-
-//    public void showScores(String score1, String score2) {
-//        // squares
-//        StdDraw.setPenColor(255, 235, 166);
-//        StdDraw.filledSquare(735, 455, 50);
-//        StdDraw.filledSquare(865, 455, 50);
-//        // digits
-//        StdDraw.setPenColor(255, 161, 84);
-//        StdDraw.setFont(new Font("Arial", Font.PLAIN, 75));
-//        StdDraw.text(735, 445, score1);
-//        StdDraw.text(865, 445, score2);
-//        // "VS"
-//        StdDraw.setFont(new Font("Arial", Font.PLAIN, 35));
-//        StdDraw.text(800, 435, "VS");
-//    }
-
 }

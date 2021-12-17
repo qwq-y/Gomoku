@@ -18,6 +18,5 @@ public class Begin {
         Play play = new Play();
         play.run();
         System.out.println("going on");
-
     }
 }
