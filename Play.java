@@ -270,8 +270,8 @@ public class Play extends Component {
         int tempX = xChange;
         int tempY = yChange;
 
-        while (color == allChess[h + xChange][v + yChange] && (h + xChange) >= 0 && (x + xChange) <= (n + 2) &&
-                (y + yChange) >= 0 && (y + yChange) <= (n + 2)) {
+        while (color == allChess[h + xChange][v + yChange] && (h + xChange) >= 0 && (h + xChange) <= (n + 2) &&
+                (v + yChange) >= 0 && (v + yChange) <= (n + 2)) {
             count++;
             if (xChange != 0) {
                 if (xChange > 0) {
