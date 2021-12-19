@@ -252,7 +252,9 @@ public class Play extends Component implements Runnable{
                 // click introduction
                 else if (720 <= x && x <= 880 && 370 <= y && y <= 430) {
                     System.out.println("introduction");
-                    String string = "balabalabala~";
+                    String string = "This is a Gomoku game weitten by Fubo and Qingyang.\n" +
+                            "Main functions include 33 forbidden moves, timer, undo, save and load, settings and play with goofy computer.\n" +
+                            "Have fun!";
                     JOptionPane.showMessageDialog(null, string, "", JOptionPane.PLAIN_MESSAGE);
                 }
 
