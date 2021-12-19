@@ -17,9 +17,8 @@ import java.util.Scanner;
 点了一下 Settings 之后关不了了。。
  */
 
-public class Play extends Component {
+public class Play extends Component implements Runnable{
     int n;
-    int minute, pause, totalPause;
     double frame, size, a;
 
     double x, y;
@@ -27,7 +26,7 @@ public class Play extends Component {
 
     boolean isBlack, canPlay, pressed;
 
-    String message;
+    String message = "Black's Turn";
 
     int[][] allChess;
 
@@ -35,10 +34,25 @@ public class Play extends Component {
     int totalCount;
     int undoCount1, undoCount2;
 
-    long[] time;
-    long totalTime;
-
     boolean playWithMe;
+
+    //时间
+    int timer = 0;
+    int timer0 = 0;    //存储每轮时间
+    int maxTimer = 0;   //总时间
+    int maxTimer0 = 0;
+
+    //线程
+    Thread t = new Thread(this);
+
+    //保留黑方和白方时间
+    int blackTimer = 0;
+    int whiteTimer = 0;
+
+    //保存双方剩余时间提示
+    String blackMessage = "Unlimited";
+    String whiteMessage = "Unlimited";
+    String totalTimer = "Unlimited";
 
     public Play() {
         this(14, 30,  120);
@@ -46,10 +60,6 @@ public class Play extends Component {
 
     public Play(int n, int minute, int pause) {
         this.n = n;
-        this.minute = minute;
-        this.pause = pause;
-        totalPause = 60 * minute;
-
         frame = 40;
         size = 700;
         a = (size - 2 * frame) / n;
@@ -65,21 +75,131 @@ public class Play extends Component {
         isBlack = true;
         canPlay = false;
 
-        time = new long[(n + 2) * (n + 2)];
-        totalTime = 0;
-
         playWithMe = false;
     }
 
-    public void run() {
+    // 封装 play
+    private void playMethod(){
+        System.out.println("play");
+        int play = JOptionPane.showConfirmDialog(null, "A new start?");
+        int withWho = JOptionPane.showConfirmDialog(null, "Play with a goofy computer?");
+
+        // new start
+        if (play == 0) {
+            if (withWho == 0) {
+                playWithMe = true;
+//                int whoFirst = JOptionPane.showConfirmDialog(null, "You go first (player1)?");
+//                if (whoFirst == 1) {
+//                    computerPlay();
+//                }
+            }
+            else if (withWho == 1) {
+                playWithMe = false;
+            }
+
+            for (int i = 0; i < allChess.length; i++) {
+                for (int j = 0; j < allChess[i].length; j++) {
+                    allChess[i][j] = 0;
+                }
+            }
+            StdDraw.clear();
+            showBoard();
+            paintTime();
+            drawPieces();
+            isBlack = true;
+            totalCount = 0;
+            canPlay = true;
+
+            //时间赋值
+            blackTimer = timer;
+            whiteTimer = timer;
+            if( timer > 0 && maxTimer > 0 ){
+                blackMessage = (timer / 3600) + ":" + ((timer / 60)-(timer / 3600) * 60)
+                        + ":" + (timer - (timer / 60) * 60);
+                whiteMessage = (timer / 3600) + ":" + ((timer / 60)-(timer / 3600) * 60)
+                        + ":" + (timer - (timer / 60) * 60);
+                totalTimer = (maxTimer / 3600) + ":" + ((maxTimer/ 60)-(maxTimer / 3600) * 60)
+                        + ":" + (maxTimer - (maxTimer / 60) * 60);
+                t.resume();
+            }else{
+                blackMessage = "Unlimited";
+                whiteMessage = "Unlimited";
+                totalTimer = "Unlimited";
+            }
+        }
+        StdDraw.clear();
+        showBoard();
+        paintTime();
+
+        // load
+        if (play == 1) {
+            if (withWho == 0) {
+                playWithMe = true;
+            }
+            String loadName = JOptionPane.showInputDialog("Recall a pre-saved game to load:");
+            File file = new File(loadName + ".txt");
+            int count1 = 0;
+            int count2 = 0;
+            try {
+                // show pieces
+                Scanner scanner = new Scanner(file);
+                while (scanner.hasNext()) {
+                    for (int i = 0; i < allChess.length; i++) {
+                        for (int j = 0; j < allChess[i].length; j++) {
+                            allChess[i][j] = scanner.nextInt();
+                            if (allChess[i][j] == 1) {
+                                count1++;
+                            }
+                            if (allChess[i][j] == 2) {
+                                count2++;
+                            }
+                        }
+                    }
+                }
+                scanner.close();
+                drawPieces();
+                // decide whose turn
+                if (count1 > count2) {
+                    isBlack = false;
+                }
+                canPlay = true;
+            } catch (FileNotFoundException e) {
+                System.out.println("FileNotFound");
+                e.printStackTrace();
+            }
+        }
+    }
+
+    //画时间
+    private void paintTime(){
+        StdDraw.enableDoubleBuffering();
+        //绘制时间
+        StdDraw.setPenColor(255, 217, 248);
+        StdDraw.filledRectangle(800, 500, 110, 47);
+        StdDraw.setFont(new Font("Arial", Font.PLAIN, 15));
+        StdDraw.setPenColor(255, 87, 185);
+        StdDraw.text(800, 500, "Player1's time: " + blackMessage);
+        StdDraw.text(800, 470, "Player2's time: " + whiteMessage);
+        StdDraw.text(800, 530, "Total time : " + totalTimer);
+
+        StdDraw.show();
+    }
+
+    public void running() {
         System.out.println("entered");
         showBoard();
+
+        this.paintTime();   //画时间
+        t.start();     //挂线程
+        t.suspend();
+
         while (true) {
             if (StdDraw.isMousePressed()) {
                 pressed = true;
-                StdDraw.pause(500);
+                StdDraw.pause(300);
                 double x = StdDraw.mouseX();
                 double y = StdDraw.mouseY();
+                System.out.println(x + " " + y);
                 h = (int) Math.round((x - frame) / a);
                 v = (int) Math.round((y - frame) / a);
                 System.out.println("pressed1");
@@ -87,38 +207,14 @@ public class Play extends Component {
                 // click chess
                 if (frame <= x && x <=  size - frame && frame <= y && y <= size - frame && canPlay) {
                     if (allChess[h][v] == 0 && isForbiddenMove() == false) {
+
+                        //每轮时间还原
+                        blackTimer = timer0;
+                        whiteTimer = timer0;
+
                         UndoPosition undoPosition = new UndoPosition(h, v);
                         undoPositions[totalCount] = undoPosition;
                         totalCount++;
-
-                        // record time
-                        long currentLong = new Date().getTime();
-                        time[totalCount - 1] = currentLong;
-                        System.out.println(currentLong);
-
-                        // judge time
-                        if (totalCount > 1) {
-                            long secondDiff = (time[totalCount - 1] - time[totalCount - 2]) / 1000;
-                            System.out.println("diff: " + (time[totalCount - 1] - time[totalCount - 2]));
-                            System.out.println("spent " + secondDiff + " seconds");
-                            totalTime += secondDiff;
-                            if (secondDiff > pause) {
-                                System.out.println("turn time up: " + secondDiff);
-                                canPlay = false;
-                                if (isBlack) {
-                                    JOptionPane.showMessageDialog(null, "Overtime, Player1 wins!");
-                                }
-                                else {
-                                    JOptionPane.showMessageDialog(null, "Overtime, Player2 wins!");
-                                }
-                            }
-                        }
-
-                        if (totalTime > totalPause) {
-                            System.out.println("total time up: " + totalTime);
-                            canPlay = false;
-                            JOptionPane.showMessageDialog(null, "Time is up! The game ends in a draw.");
-                        }
 
                         // place pieces
                         if (isBlack) {
@@ -154,85 +250,19 @@ public class Play extends Component {
                 }
 
                 // click introduction
-                else if (720 <= x && x <= 880 && 450 <= y && y <= 510) {
+                else if (720 <= x && x <= 880 && 370 <= y && y <= 430) {
                     System.out.println("introduction");
                     String string = "balabalabala~";
                     JOptionPane.showMessageDialog(null, string, "", JOptionPane.PLAIN_MESSAGE);
                 }
 
                 // click play
-                else if (720 <= x && x <= 880 && 370 <= y && y <= 430) {
-                    System.out.println("play");
-                    int play = JOptionPane.showConfirmDialog(null, "A new start?");
-                    int withWho = JOptionPane.showConfirmDialog(null, "Play with a goofy computer?");
-
-                    // new start
-                    if (play == 0) {
-                        if (withWho == 0) {
-                            playWithMe = true;
-                            int whoFirst = JOptionPane.showConfirmDialog(null, "You go first (player1)?");
-                            if (whoFirst == 1) {
-                                computerPlay();
-                            }
-                        }
-                        else if (withWho == 1) {
-                            playWithMe = false;
-                        }
-
-                        for (int i = 0; i < allChess.length; i++) {
-                            for (int j = 0; j < allChess[i].length; j++) {
-                                allChess[i][j] = 0;
-                            }
-                        }
-                        StdDraw.clear();
-                        showBoard();
-                        drawPieces();
-                        totalCount = 0;
-                        totalTime = 0;
-                        canPlay = true;
-                    }
-
-                    // load
-                    if (play == 1) {
-                        if (withWho == 0) {
-                            playWithMe = true;
-                        }
-                        String loadName = JOptionPane.showInputDialog("Recall a pre-saved game to load:");
-                        File file = new File(loadName + ".txt");
-                        int count1 = 0;
-                        int count2 = 0;
-                        try {
-                            // show pieces
-                            Scanner scanner = new Scanner(file);
-                            while (scanner.hasNext()) {
-                                for (int i = 0; i < allChess.length; i++) {
-                                    for (int j = 0; j < allChess[i].length; j++) {
-                                        allChess[i][j] = scanner.nextInt();
-                                        if (allChess[i][j] == 1) {
-                                            count1++;
-                                        }
-                                        if (allChess[i][j] == 2) {
-                                            count2++;
-                                        }
-                                    }
-                                }
-                            }
-                            scanner.close();
-                            drawPieces();
-                            // decide whose turn
-                            if (count1 > count2) {
-                                isBlack = false;
-                            }
-                            canPlay = true;
-                        } catch (FileNotFoundException e) {
-                            System.out.println("FileNotFound");
-                            e.printStackTrace();
-                        }
-                    }
+                else if (720 <= x && x <= 880 && 290 <= y && y <= 350) {
+                    playMethod();
                 }
 
                 // click undo
-                else if (720 <= x && x <= 880 && 290 <= y && y <= 350) {
+                else if (720 <= x && x <= 880 && 210 <= y && y <= 270) {
                     if (isBlack) {
                         undoCount2++;
                         isBlack = false;
@@ -251,6 +281,7 @@ public class Play extends Component {
                         StdDraw.enableDoubleBuffering();
                         StdDraw.clear();
                         showBoard();
+                        paintTime();
                         drawPieces();
                         System.out.println("undo2");
                         StdDraw.pause(300);
@@ -261,7 +292,7 @@ public class Play extends Component {
                 }
 
                 // click stop
-                else if (720 <= x && x <= 880 && 210 <= y && y <= 270) {
+                else if (720 <= x && x <= 880 && 130 <= y && y <= 190) {
                     System.out.println("stop");
                     int stop = JOptionPane.showConfirmDialog(null, "Wanner save this game for the next time?");
                     // save
@@ -287,19 +318,49 @@ public class Play extends Component {
                 }
 
                 // click settings
-                else if (720 <= x && x <= 880 && 130 <= y && y <= 190) {
+                else if (720 <= x && x <= 880 && 50 <= y && y <= 110) {
                     String boardSize = JOptionPane.showInputDialog("Input N to creat an NxN board (14 by default): ");
-                    String minuteSetting = JOptionPane.showInputDialog("Input the total time limit in minutes (30 by default): ");
-                    String pauseSetting = JOptionPane.showInputDialog("Input the time limit every turn in seconds (120 by default): ");
+                    String inputTime = JOptionPane.showInputDialog("Please input the limit time for EACH TURN " +
+                            "(Unit is MINUTE and 0 means no limitation): ");
+                    String inputMaxTime = JOptionPane.showInputDialog("Please input the maxTime for the WHOLE GAME " +
+                            "(Unit is MINUTE and 0 means no limitation): ");
 
-                    n = Integer.parseInt(boardSize);
-                    allChess = new int[n + 2][n + 2];
-                    a = (size - 2 * frame) / n;
-                    minute = Integer.parseInt(minuteSetting);
-                    pause = Integer.parseInt(pauseSetting);
-                    undoPositions = new UndoPosition[(n + 2) * (n + 2)];
-                    isBlack = true;
-                    showBoard();
+
+                    try {
+                        timer = Integer.parseInt(inputTime) * 60;
+                        timer0 = timer;
+                        maxTimer = Integer.parseInt(inputMaxTime) * 60;
+                        if(timer < 0){
+                            JOptionPane.showMessageDialog(null, "Please don't input negative");
+                        }
+                        if(maxTimer < 0 ){
+                            JOptionPane.showMessageDialog(null, "Please don't input negative");
+                        }
+                        if(timer == 0){
+                            int result = JOptionPane.showConfirmDialog(null, "Setting completed!");
+                            if(result == 0){
+                                this.playMethod();
+                            }
+                        }
+                        if(timer > 0){
+                            int result = JOptionPane.showConfirmDialog(null, "Setting completed!");
+                            if(result == 0) {
+                                this.playMethod();
+                            }
+                        }
+
+                        n = Integer.parseInt(boardSize);
+                        allChess = new int[n + 2][n + 2];
+                        a = (size - 2 * frame) / n;
+
+                        undoPositions = new UndoPosition[(n + 2) * (n + 2)];
+                        isBlack = true;
+                        showBoard();
+                        paintTime();
+
+                    }catch(NumberFormatException ex){
+                        JOptionPane.showMessageDialog(null,"Please input correct message!");
+                    }
                 }
 
                 // other click
@@ -407,7 +468,6 @@ public class Play extends Component {
                 }
             }
         }
-
         return flag;
     }
 
@@ -499,8 +559,6 @@ public class Play extends Component {
         System.out.println("computer: " + comX + " " + comY);
 
         totalCount++;
-        long currentLong = new Date().getTime();
-        time[totalCount - 1] = currentLong;
 
         if (isBlack) {
             allChess[comX][comY] = 1;
@@ -541,45 +599,92 @@ public class Play extends Component {
 
         // "Introduction" button
         StdDraw.setPenColor(0, 187, 255);
-        StdDraw.filledRectangle(804, 476, 80, 30);
+        StdDraw.filledRectangle(804, 396, 80, 30);
         StdDraw.setPenColor(201, 241, 255);
-        StdDraw.filledRectangle(800, 480, 80, 30);
+        StdDraw.filledRectangle(800, 400, 80, 30);
         StdDraw.setFont(new Font("Arial", Font.PLAIN, 25));
         StdDraw.setPenColor(0, 187, 255);
-        StdDraw.text(800, 475, "Introduction");
+        StdDraw.text(800, 395, "Introduction");
 
         // "Play" button
-        StdDraw.setPenColor(255, 161, 84);
-        StdDraw.filledRectangle(804, 396, 80, 30);
+        StdDraw.setPenColor(254, 128, 73);
+        StdDraw.filledRectangle(804, 316, 80, 30);
         StdDraw.setPenColor(255, 235, 166);
-        StdDraw.filledRectangle(800, 400, 80, 30);
-        StdDraw.setPenColor(255, 161, 84);
-        StdDraw.text(800, 395, "Play");
+        StdDraw.filledRectangle(800, 320, 80, 30);
+        StdDraw.setPenColor(254, 128, 73);
+        StdDraw.text(800, 315, "Play");
 
         // "Undo" button
         StdDraw.setPenColor(0, 187, 255);
-        StdDraw.filledRectangle(804, 316, 80, 30);
+        StdDraw.filledRectangle(804, 236, 80, 30);
         StdDraw.setPenColor(201, 241, 255);
-        StdDraw.filledRectangle(800, 320, 80, 30);
+        StdDraw.filledRectangle(800, 240, 80, 30);
         StdDraw.setPenColor(0, 187, 255);
-        StdDraw.text(800, 315, "Undo");
+        StdDraw.text(800, 235, "Undo");
 
         // "Stop" button
-        StdDraw.setPenColor(255, 109, 197);
-        StdDraw.filledRectangle(804, 236, 80, 30);
-        StdDraw.setPenColor(255, 206, 245);
-        StdDraw.filledRectangle(800, 240, 80, 30);
-        StdDraw.setPenColor(255, 109, 197);
-        StdDraw.text(800, 235, "Stop");
+        StdDraw.setPenColor(255, 87, 185);
+        StdDraw.filledRectangle(804, 156, 80, 30);
+        StdDraw.setPenColor(255, 217, 248);
+        StdDraw.filledRectangle(800, 160, 80, 30);
+        StdDraw.setPenColor(255, 87, 185);
+        StdDraw.text(800, 155, "Stop");
 
         // "Settings" button
         StdDraw.setPenColor(0, 187, 255);
-        StdDraw.filledRectangle(804, 156, 80, 30);
+        StdDraw.filledRectangle(804, 76, 80, 30);
         StdDraw.setPenColor(201, 241, 255);
-        StdDraw.filledRectangle(800, 160, 80, 30);
+        StdDraw.filledRectangle(800, 80, 80, 30);
         StdDraw.setPenColor(0, 187, 255);
-        StdDraw.text(800, 155, "Settings");
+        StdDraw.text(800, 75, "Settings");
 
         StdDraw.show();
+    }
+
+    @Override
+    public void run() {
+        if(maxTimer > 0 && blackTimer > 0 && whiteTimer >0){      //是否有剩余时间
+            while(true){
+                if(isBlack){                        //黑方
+                    blackTimer--;                       //时间递减
+                    maxTimer--;
+                    if(blackTimer == 0){
+                        JOptionPane.showMessageDialog(null, "Black Time-out. White win!");
+                        canPlay = false;            //不能再下棋
+                        break;                      //跳出循环
+                    }
+                    if(maxTimer == 0){
+                        JOptionPane.showMessageDialog(null, "Time-out");
+                        canPlay = false;
+                        break;
+                    }
+                }else{
+                    whiteTimer--;
+                    maxTimer--;
+                    if(whiteTimer == 0){
+                        JOptionPane.showMessageDialog(null,"White Time-out. Black win!");
+                        canPlay = false;
+                        break;
+                    }
+                    if(maxTimer == 0){
+                        JOptionPane.showMessageDialog(null, "Time-out");
+                        canPlay = false;
+                        break;
+                    }
+                }
+                blackMessage = (blackTimer / 3600) + ":" + ((blackTimer / 60) -(blackTimer / 3600)* 60)
+                        + ":" + (blackTimer - (blackTimer /60) * 60 );
+                whiteMessage = (whiteTimer / 3600) + ":" + ((whiteTimer / 60) -(whiteTimer / 3600)* 60)
+                        + ":" + (whiteTimer - (whiteTimer /60) * 60 );
+                totalTimer = (maxTimer / 3600) + ":" + ((maxTimer / 60) -(maxTimer / 3600)* 60)
+                        + ":" + (maxTimer - (maxTimer /60) * 60 );
+                this.paintTime();                       //重画时间
+                try{
+                    Thread.sleep(1000);             //时间间隔为 1s
+                }catch(InterruptedException ex){
+                    ex.printStackTrace();
+                }
+            }
+        }
     }
 }
