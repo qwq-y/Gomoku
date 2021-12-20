@@ -4,18 +4,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.util.Date;
 import java.util.Scanner;
-
-/*
-棋盘边界下棋会数组越界
-再次开始时玩家一二不会重新开始算
-超时的时候谁赢
-计时不会显示噢
-人机傻傻的
-选电脑先手会越界。。
-点了一下 Settings 之后关不了了。。
- */
 
 public class Play extends Component implements Runnable{
     int n;
@@ -88,10 +77,6 @@ public class Play extends Component implements Runnable{
         if (play == 0) {
             if (withWho == 0) {
                 playWithMe = true;
-//                int whoFirst = JOptionPane.showConfirmDialog(null, "You go first (player1)?");
-//                if (whoFirst == 1) {
-//                    computerPlay();
-//                }
             }
             else if (withWho == 1) {
                 playWithMe = false;
@@ -113,7 +98,7 @@ public class Play extends Component implements Runnable{
             //时间赋值
             blackTimer = timer;
             whiteTimer = timer;
-            if( timer > 0 && maxTimer > 0 ){
+            if (timer > 0 && maxTimer > 0) {
                 blackMessage = (timer / 3600) + ":" + ((timer / 60)-(timer / 3600) * 60)
                         + ":" + (timer - (timer / 60) * 60);
                 whiteMessage = (timer / 3600) + ":" + ((timer / 60)-(timer / 3600) * 60)
@@ -121,7 +106,7 @@ public class Play extends Component implements Runnable{
                 totalTimer = (maxTimer / 3600) + ":" + ((maxTimer/ 60)-(maxTimer / 3600) * 60)
                         + ":" + (maxTimer - (maxTimer / 60) * 60);
                 t.resume();
-            }else{
+            } else {
                 blackMessage = "Unlimited";
                 whiteMessage = "Unlimited";
                 totalTimer = "Unlimited";
@@ -327,7 +312,6 @@ public class Play extends Component implements Runnable{
                     String inputMaxTime = JOptionPane.showInputDialog("Please input the maxTime for the WHOLE GAME " +
                             "(Unit is MINUTE and 0 means no limitation): ");
 
-
                     try {
                         timer = Integer.parseInt(inputTime) * 60;
                         timer0 = timer;
@@ -494,7 +478,7 @@ public class Play extends Component implements Runnable{
                 count1++;
                 j++;
             }
-            if (count1 >= 3 && allChess[h + i + 1][v] == 0 && allChess[h - j - 1][v] == 0) {
+            if (count1 == 3 && allChess[h + i + 1][v] == 0 && allChess[h - j - 1][v] == 0) {
                 countForbidden++;
             }
 
@@ -509,7 +493,7 @@ public class Play extends Component implements Runnable{
                 count2++;
                 j++;
             }
-            if (count2 >= 3 && allChess[h][v + i + 1] == 0 && allChess[h][v - j - 1] == 0) {
+            if (count2 == 3 && allChess[h][v + i + 1] == 0 && allChess[h][v - j - 1] == 0) {
                 countForbidden++;
             }
 
@@ -524,7 +508,7 @@ public class Play extends Component implements Runnable{
                 count3++;
                 j++;
             }
-            if (count3 >= 3 && allChess[h + i + 1][v + i + 1] == 0 && allChess[h - j - 1][v - j - 1] == 0) {
+            if (count3 == 3 && allChess[h + i + 1][v + i + 1] == 0 && allChess[h - j - 1][v - j - 1] == 0) {
                 countForbidden++;
             }
 
@@ -539,7 +523,7 @@ public class Play extends Component implements Runnable{
                 count4++;
                 j++;
             }
-            if (count4 >= 3 && allChess[h - i - 1][v + i + 1] == 0 && allChess[h + j + 1][v - j - 1] == 0) {
+            if (count4 == 3 && allChess[h - i - 1][v + i + 1] == 0 && allChess[h + j + 1][v - j - 1] == 0) {
                 countForbidden++;
             }
 
